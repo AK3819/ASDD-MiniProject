@@ -24,6 +24,7 @@ def index():
 
 
 @customers_bp.route("/add", methods=["GET", "POST"])
+@customers_bp.route("/create", methods=["GET", "POST"])
 @login_required
 def add():
     if request.method == "POST":

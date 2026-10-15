@@ -1,19 +1,19 @@
 /* ==========================================================================
    RE GARAGE - Royal Enfield Service Management System
-   Premium Dark Theme & Dashboard Styles
+   Premium Dark Theme & Dashboard Styles (High Contrast & Professional)
    ========================================================================== */
 
 :root {
     --re-red: #d90429;
     --re-red-hover: #ef233c;
     --re-red-dark: #8d0801;
-    --re-gold: #c5a059;
-    --re-dark-900: #0f1115;
-    --re-dark-800: #161a1e;
-    --re-dark-700: #1e2329;
-    --re-dark-600: #292f38;
-    --re-border: #2d333b;
-    --re-text-muted: #8b949e;
+    --re-gold: #e5a93c;
+    --re-dark-900: #0d1117;
+    --re-dark-800: #161b22;
+    --re-dark-700: #21262d;
+    --re-dark-600: #30363d;
+    --re-border: #30363d;
+    --re-text-muted: #a0aec0;
     --re-text-light: #f0f6fc;
 }
 
@@ -23,6 +23,19 @@ body {
     font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
+}
+
+/* High Contrast Muted & Secondary Text Overrides */
+.text-muted {
+    color: #a0aec0 !important;
+}
+
+.text-light {
+    color: #f0f6fc !important;
+}
+
+.small, small {
+    color: inherit;
 }
 
 /* Sidebar Styling */
@@ -38,7 +51,7 @@ body {
 #sidebar .brand-container {
     padding: 1.25rem 1.5rem;
     border-bottom: 1px solid var(--re-border);
-    background: linear-gradient(180deg, rgba(217, 4, 41, 0.1) 0%, rgba(22, 26, 30, 0) 100%);
+    background: linear-gradient(180deg, rgba(217, 4, 41, 0.15) 0%, rgba(22, 27, 34, 0) 100%);
 }
 
 #sidebar .brand-title {
@@ -62,7 +75,7 @@ body {
 
 #sidebar .brand-subtitle {
     font-size: 0.72rem;
-    color: var(--re-text-muted);
+    color: #a0aec0;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-top: 2px;
@@ -88,20 +101,20 @@ body {
 
 #sidebar .nav-link.active {
     color: #ffffff;
-    background-color: rgba(217, 4, 41, 0.15);
+    background-color: rgba(217, 4, 41, 0.2);
     border-left-color: var(--re-red);
     font-weight: 600;
 }
 
 #sidebar .nav-link i {
     font-size: 1.15rem;
-    color: var(--re-text-muted);
+    color: #a0aec0;
     transition: color 0.2s ease;
 }
 
 #sidebar .nav-link:hover i,
 #sidebar .nav-link.active i {
-    color: var(--re-red);
+    color: var(--re-red-hover);
 }
 
 /* Main Content Area */
@@ -124,7 +137,7 @@ body {
     background-color: var(--re-dark-800);
     border: 1px solid var(--re-border);
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
 .card-dark .card-header {
@@ -148,8 +161,8 @@ body {
 
 .stat-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
-    border-color: rgba(217, 4, 41, 0.4);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+    border-color: rgba(217, 4, 41, 0.5);
 }
 
 .stat-card .stat-icon {
@@ -170,7 +183,7 @@ body {
 }
 
 .stat-card .stat-label {
-    color: var(--re-text-muted);
+    color: #a0aec0;
     font-size: 0.82rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -180,7 +193,7 @@ body {
 /* Custom Buttons */
 .btn-re {
     background-color: var(--re-red);
-    color: #ffffff;
+    color: #ffffff !important;
     border: none;
     font-weight: 600;
     transition: all 0.2s ease;
@@ -188,103 +201,122 @@ body {
 
 .btn-re:hover, .btn-re:focus {
     background-color: var(--re-red-hover);
-    color: #ffffff;
-    box-shadow: 0 0 12px rgba(217, 4, 41, 0.4);
+    color: #ffffff !important;
+    box-shadow: 0 0 14px rgba(217, 4, 41, 0.5);
 }
 
 .btn-outline-re {
-    color: var(--re-red);
+    color: var(--re-red-hover) !important;
     border-color: var(--re-red);
     font-weight: 600;
 }
 
 .btn-outline-re:hover {
     background-color: var(--re-red);
-    color: #ffffff;
+    color: #ffffff !important;
 }
 
-/* Tables */
+/* Tables — Dark High Contrast System */
 .table-dark-custom {
-    background-color: var(--re-dark-800);
-    color: #e6edf3;
+    --bs-table-bg: var(--re-dark-800) !important;
+    --bs-table-color: #f0f6fc !important;
+    --bs-table-border-color: var(--re-border) !important;
+    --bs-table-hover-bg: #21262d !important;
+    --bs-table-striped-bg: #1c2128 !important;
+    background-color: var(--re-dark-800) !important;
+    color: #f0f6fc !important;
     margin-bottom: 0;
+    border-color: var(--re-border) !important;
 }
 
-.table-dark-custom th {
-    background-color: var(--re-dark-700);
-    color: #8b949e;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 1px solid var(--re-border);
-    padding: 0.85rem 1rem;
-}
-
-.table-dark-custom td {
-    border-bottom: 1px solid var(--re-border);
-    padding: 0.85rem 1rem;
+.table-dark-custom > :not(caption) > * > * {
+    background-color: var(--re-dark-800) !important;
+    color: #f0f6fc !important;
+    border-bottom: 1px solid var(--re-border) !important;
+    padding: 0.9rem 1rem;
     vertical-align: middle;
+    box-shadow: none !important;
 }
 
-.table-dark-custom tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.04);
+.table-dark-custom thead th {
+    background-color: var(--re-dark-700) !important;
+    color: #e6edf3 !important;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.75px;
+    border-bottom: 2px solid #3d444d !important;
+}
+
+.table-dark-custom tbody tr {
+    background-color: var(--re-dark-800) !important;
+}
+
+.table-dark-custom tbody tr:hover > * {
+    background-color: #21262d !important;
 }
 
 /* Form Controls */
 .form-control-dark, .form-select-dark {
-    background-color: var(--re-dark-900);
-    border: 1px solid var(--re-border);
-    color: #ffffff;
+    background-color: var(--re-dark-900) !important;
+    border: 1px solid var(--re-border) !important;
+    color: #ffffff !important;
     border-radius: 6px;
     padding: 0.6rem 0.9rem;
 }
 
 .form-control-dark:focus, .form-select-dark:focus {
-    background-color: var(--re-dark-900);
-    border-color: var(--re-red);
-    color: #ffffff;
-    box-shadow: 0 0 0 0.2rem rgba(217, 4, 41, 0.25);
+    background-color: var(--re-dark-900) !important;
+    border-color: var(--re-red) !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 0 0.2rem rgba(217, 4, 41, 0.3) !important;
 }
 
 .form-control-dark::placeholder {
-    color: var(--re-text-muted);
+    color: #6e7681 !important;
 }
 
 /* Status Badges */
 .badge-status-pending {
-    background-color: rgba(245, 158, 11, 0.15);
-    color: #fbbf24;
-    border: 1px solid rgba(245, 158, 11, 0.3);
+    background-color: rgba(245, 158, 11, 0.2);
+    color: #fcd34d !important;
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    font-weight: 600;
 }
 
 .badge-status-progress {
-    background-color: rgba(59, 130, 246, 0.15);
-    color: #60a5fa;
-    border: 1px solid rgba(59, 130, 246, 0.3);
+    background-color: rgba(59, 130, 246, 0.2);
+    color: #93c5fd !important;
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    font-weight: 600;
 }
 
 .badge-status-completed {
-    background-color: rgba(16, 185, 129, 0.15);
-    color: #34d399;
-    border: 1px solid rgba(16, 185, 129, 0.3);
+    background-color: rgba(16, 185, 129, 0.2);
+    color: #6ee7b7 !important;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    font-weight: 600;
 }
 
 .badge-status-cancelled {
-    background-color: rgba(107, 114, 128, 0.2);
-    color: #9ca3af;
-    border: 1px solid rgba(107, 114, 128, 0.3);
+    background-color: rgba(107, 114, 128, 0.25);
+    color: #d1d5db !important;
+    border: 1px solid rgba(107, 114, 128, 0.4);
+    font-weight: 600;
 }
 
 .badge-paid {
-    background-color: rgba(16, 185, 129, 0.2);
-    color: #34d399;
-    border: 1px solid #10b981;
+    background-color: rgba(16, 185, 129, 0.25) !important;
+    color: #34d399 !important;
+    border: 1px solid #10b981 !important;
+    font-weight: 700;
 }
 
 .badge-unpaid {
-    background-color: rgba(239, 68, 68, 0.2);
-    color: #f87171;
-    border: 1px solid #ef4444;
+    background-color: rgba(239, 68, 68, 0.25) !important;
+    color: #f87171 !important;
+    border: 1px solid #ef4444 !important;
+    font-weight: 700;
 }
 
 .pulse-badge {
@@ -297,13 +329,44 @@ body {
     100% { box-shadow: 0 0 0 0 rgba(239, 35, 60, 0); }
 }
 
+/* Invoice Specific Screen Elements */
+.invoice-card {
+    background-color: var(--re-dark-800);
+    border: 1px solid var(--re-border);
+    border-radius: 12px;
+}
+
+.invoice-info-box {
+    background-color: #0f141c;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 1.1rem 1.25rem;
+    height: 100%;
+}
+
+.invoice-section-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--re-gold);
+    margin-bottom: 0.75rem;
+}
+
+.total-highlight-box {
+    background: linear-gradient(135deg, rgba(217, 4, 41, 0.2) 0%, rgba(22, 27, 34, 0.95) 100%);
+    border: 1px solid rgba(217, 4, 41, 0.6);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+}
+
 /* Print Invoice Styling */
 @media print {
     body {
         background-color: #ffffff !important;
         color: #000000 !important;
     }
-    #sidebar, .top-header, .no-print, .btn, .alert {
+    #sidebar, .top-header, .no-print, .btn, .alert, footer {
         display: none !important;
     }
     #main-content {
@@ -316,13 +379,30 @@ body {
         box-shadow: none !important;
         background-color: #ffffff !important;
         color: #000000 !important;
+        padding: 0 !important;
+    }
+    .invoice-info-box {
+        background-color: #f8f9fa !important;
+        border: 1px solid #dee2e6 !important;
+        color: #111111 !important;
+    }
+    .text-white, .fw-bold, strong, h1, h2, h3, h4, h5, h6 {
+        color: #111111 !important;
+    }
+    .text-muted {
+        color: #555555 !important;
     }
     .table-dark-custom {
         background-color: #ffffff !important;
         color: #000000 !important;
     }
-    .table-dark-custom th, .table-dark-custom td {
+    .table-dark-custom > :not(caption) > * > * {
         background-color: #ffffff !important;
+        color: #000000 !important;
+        border-color: #dee2e6 !important;
+    }
+    .table-dark-custom thead th {
+        background-color: #f1f3f5 !important;
         color: #000000 !important;
         border-color: #dee2e6 !important;
     }

@@ -377,14 +377,14 @@
                     </div>
 
                     <!-- Grand Total Box -->
-                    <div class="total-highlight-box mt-3">
+                    <div class="total-highlight-box mt-3 p-3">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <div class="text-muted small text-uppercase fw-bold letter-spacing-1">Grand Total</div>
-                                <div class="text-white-50 small" style="font-size: 0.72rem;">Net Payable Amount</div>
+                                <div class="text-warning small text-uppercase fw-bold letter-spacing-1">Grand Total</div>
+                                <div class="text-light fw-medium small">Net Payable Amount</div>
                             </div>
                             <div class="text-end">
-                                <span class="fs-2 fw-bold text-danger">₹{{ "%.2f"|format(invoice.grand_total) }}</span>
+                                <span class="fs-2 fw-bold text-white text-nowrap">₹{{ "%.2f"|format(invoice.grand_total) }}</span>
                             </div>
                         </div>
                     </div>

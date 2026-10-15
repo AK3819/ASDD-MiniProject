@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+
+{% block title %}Create Invoice{% endblock %}
+
+{% block page_heading %}Generate Invoice{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Header / Navigation Bar -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{{ url_for('billing.index') }}" class="text-danger text-decoration-none">Billing</a></li>
+                    <li class="breadcrumb-item active text-muted" aria-current="page">New Invoice</li>
+                </ol>
+            </nav>
+            <h4 class="text-white fw-bold mb-0">Generate Workshop Invoice</h4>
+        </div>
+        <a href="{{ url_for('billing.index') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> Back to Invoices
+        </a>
+    </div>
+
+    {% if not eligible_bookings %}
+    <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center justify-content-between p-3 mb-4" role="alert">
+        <div class="d-flex align-items-center gap-3">
+            <i class="bi bi-exclamation-triangle-fill fs-3 text-warning"></i>
+            <div>
+                <h6 class="fw-bold mb-1 text-white">No Eligible Service Bookings Available</h6>
+                <div class="small text-white-50">All current bookings already have an invoice generated, or there are no bookings in the system.</div>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('bookings.create') }}" class="btn btn-sm btn-re text-nowrap">
+                <i class="bi bi-plus-circle me-1"></i> New Service Booking
+            </a>
+            <a href="{{ url_for('billing.index') }}" class="btn btn-sm btn-outline-light text-nowrap">
+                View Invoices
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('billing.create') }}" id="invoice-form">
+        <div class="row g-4">
+            <!-- Left Column: Booking Selection & Line Items -->
+            <div class="col-12 col-xl-8">
+                <!-- Section 1: Service Booking Details -->
+                <div class="card card-dark mb-4">
+                    <div class="card-header d-flex align-items-center gap-2">
+                        <i class="bi bi-calendar2-check text-danger"></i>
+                        <span class="fw-bold">Step 1: Select Service Booking</span>
+                    </div>
+                    <div class="card-body p-4">
+                        <label for="booking_id" class="form-label text-light fw-semibold">
+                            Associated Service Booking <span class="text-danger">*</span>
+                        </label>
+                        <select name="booking_id" id="booking_id" class="form-select form-select-dark" required {% if not eligible_bookings %}disabled{% endif %}>
+                            <option value="">-- Choose a Completed / Active Service Booking --</option>
+                            {% for booking in eligible_bookings %}
+                            <option value="{{ booking.id }}" 
+                                    {% if preselected_booking_id == booking.id %}selected{% endif %}
+                                    data-customer="{{ booking.customer.name }}"
+                                    data-phone="{{ booking.customer.mobile }}"
+                                    data-bike="{{ booking.motorcycle.registration_number }} ({{ booking.motorcycle.model }})"
+                                    data-service="{{ booking.service_type }}"
+                                    data-date="{{ booking.booking_date.strftime('%d %b %Y') }}"
+                                    data-desc="{{ booking.problem_description or 'Standard Inspection' }}">
+                                Booking #{{ booking.id }} &bull; {{ booking.customer.name }} &bull; {{ booking.motorcycle.registration_number }} ({{ booking.motorcycle.model }}) &bull; {{ booking.service_type }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text text-muted">
+                            Only bookings without existing invoices are displayed here. Marking this invoice will automatically finalize the booking status to Completed.
+                        </div>
+
+                        <!-- Live Selected Booking Info Preview Banner -->
+                        <div id="booking-preview-card" class="mt-3 p-3 rounded bg-dark border border-secondary border-opacity-50 d-none">
+                            <div class="row g-2 small">
+                                <div class="col-sm-6">
+                                    <span class="text-muted">Customer:</span>
+                                    <strong class="text-white ms-1" id="preview-customer">-</strong>
+                                </div>
+                                <div class="col-sm-6">
+                                    <span class="text-muted">Motorcycle:</span>
+                                    <strong class="text-danger ms-1" id="preview-bike">-</strong>
+                                </div>
+                                <div class="col-sm-6">
+                                    <span class="text-muted">Service Type:</span>
+                                    <span class="badge bg-secondary bg-opacity-50 text-light ms-1" id="preview-service">-</span>
+                                </div>
+                                <div class="col-sm-6">
+                                    <span class="text-muted">Booking Date:</span>
+                                    <span class="text-white-50 ms-1" id="preview-date">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Spare Parts Line Items -->
+                <div class="card card-dark mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-boxes text-danger"></i>
+                            <span class="fw-bold">Step 2: Spare Parts & Consumables</span>
+                        </div>
+                        <button type="button" id="add-item-btn" class="btn btn-outline-re btn-sm d-inline-flex align-items-center gap-1">
+                            <i class="bi bi-plus-circle"></i> Add Spare Part
+                        </button>
+                    </div>
+
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-dark-custom align-middle mb-0" id="billing-items-table">
+                                <thead>
+                                    <tr>
+                                        <th style="min-width: 260px;">Spare Part Catalog</th>
+                                        <th style="width: 140px;">Quantity</th>
+                                        <th style="width: 170px;">Unit Price (₹)</th>
+                                        <th style="width: 160px;" class="text-end">Line Total (₹)</th>
+                                        <th style="width: 60px;" class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="billing-items-body">
+                                    <!-- Dynamic Rows inserted here by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Empty Placeholder for Table -->
+                        <div id="no-parts-placeholder" class="text-center py-4 text-muted">
+                            <i class="bi bi-box-seam fs-3 d-block mb-2 text-secondary"></i>
+                            <div class="small">No spare parts added to this invoice yet.</div>
+                            <div class="text-muted" style="font-size: 0.78rem;">Click <strong>"Add Spare Part"</strong> above if any replacement components or fluids were used.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Labour & Service Charges -->
+                <div class="card card-dark mb-4">
+                    <div class="card-header d-flex align-items-center gap-2">
+                        <i class="bi bi-wrench-adjustable text-danger"></i>
+                        <span class="fw-bold">Step 3: Labour & Workshop Fee</span>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-7">
+                                <label for="labour_charge" class="form-label text-light fw-semibold mb-1">
+                                    Labour / Technician Charges (₹) <span class="text-danger">*</span>
+                                </label>
+                                <div class="form-text text-muted mb-3 mb-md-0">
+                                    Enter workshop labor fee covering inspection, repairs, maintenance, and tuning.
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-muted">₹</span>
+                                    <input type="number" 
+                                           step="0.01" 
+                                           min="0" 
+                                           name="labour_charge" 
+                                           id="labour_charge" 
+                                           class="form-control form-control-dark fs-5 fw-bold text-end" 
+                                           value="0.00" 
+                                           placeholder="0.00" 
+                                           required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Summary, Payment & Submission -->
+            <div class="col-12 col-xl-4">
+                <!-- Summary Card -->
+                <div class="card card-dark mb-4">
+                    <div class="card-header d-flex align-items-center gap-2">
+                        <i class="bi bi-calculator text-danger"></i>
+                        <span class="fw-bold">Invoice Summary</span>
+                    </div>
+                    <div class="card-body p-4">
+                        <!-- Parts Subtotal -->
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+                            <span class="text-muted">Parts & Consumables:</span>
+                            <span id="parts_total_display" class="fw-semibold text-white fs-6">Rs. 0.00</span>
+                        </div>
+
+                        <!-- Labour Fee -->
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+                            <span class="text-muted">Labour / Service Fee:</span>
+                            <span id="labour_summary_display" class="fw-semibold text-white fs-6">Rs. 0.00</span>
+                        </div>
+
+                        <!-- Grand Total -->
+                        <div class="p-3 rounded bg-dark border border-danger border-opacity-50 mt-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-muted small text-uppercase fw-bold letter-spacing-1">Grand Total</div>
+                                    <small class="text-white-50" style="font-size: 0.75rem;">Inclusive of parts & labour</small>
+                                </div>
+                                <div class="text-end">
+                                    <span id="grand_total_display" class="fs-3 fw-bold text-danger">Rs. 0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment & Status Card -->
+                <div class="card card-dark mb-4">
+                    <div class="card-header d-flex align-items-center gap-2">
+                        <i class="bi bi-credit-card text-danger"></i>
+                        <span class="fw-bold">Payment & Settlement</span>
+                    </div>
+                    <div class="card-body p-4">
+                        <!-- Payment Method -->
+                        <div class="mb-3">
+                            <label for="payment_method" class="form-label text-light fw-semibold">
+                                Payment Method <span class="text-danger">*</span>
+                            </label>
+                            <select name="payment_method" id="payment_method" class="form-select form-select-dark" required>
+                                {% for method in payment_methods %}
+                                <option value="{{ method }}">{{ method }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Payment Status -->
+                        <div class="mb-3">
+                            <label for="status" class="form-label text-light fw-semibold">
+                                Invoice Status <span class="text-danger">*</span>
+                            </label>
+                            <select name="status" id="status" class="form-select form-select-dark" required>
+                                {% for choice in status_choices %}
+                                <option value="{{ choice }}" {% if choice == 'Unpaid' %}selected{% endif %}>
+                                    {{ choice }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text text-muted">
+                                Select "Paid" if customer cleared the bill immediately.
+                            </div>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="mb-3">
+                            <label for="notes" class="form-label text-light fw-semibold">
+                                Workshop Notes / Remarks
+                            </label>
+                            <textarea name="notes" 
+                                      id="notes" 
+                                      rows="3" 
+                                      class="form-control form-control-dark" 
+                                      placeholder="e.g., Engine oil flushed and replaced, general 50-point inspection completed, brake pads cleaned..."></textarea>
+                            <div class="form-text text-muted">Optional remarks printed on invoice.</div>
+                        </div>
+
+                        <hr class="border-secondary my-4">
+
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-re py-2 fw-semibold shadow-sm" {% if not eligible_bookings %}disabled{% endif %}>
+                                <i class="bi bi-check2-circle me-1"></i> Generate & Issue Invoice
+                            </button>
+                            <a href="{{ url_for('billing.index') }}" class="btn btn-outline-secondary py-2">
+                                Cancel
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. Preloaded spare parts catalog fallback
+    window.sparePartsCatalog = [
+        {% for part in spare_parts %}
+        {
+            id: {{ part.id }},
+            name: {{ part.name|tojson }},
+            category: {{ part.category|tojson }},
+            quantity: {{ part.quantity }},
+            unit_price: {{ part.unit_price }}
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    const itemsBody = document.getElementById('billing-items-body');
+    const placeholder = document.getElementById('no-parts-placeholder');
+    const labourInput = document.getElementById('labour_charge');
+    const labourSummary = document.getElementById('labour_summary_display');
+    const bookingSelect = document.getElementById('booking_id');
+    const previewCard = document.getElementById('booking-preview-card');
+
+    // 2. Toggle empty placeholder visibility
+    function checkPlaceholder() {
+        if (!itemsBody || !placeholder) return;
+        const rowCount = itemsBody.querySelectorAll('tr.item-row').length;
+        placeholder.style.display = rowCount === 0 ? 'block' : 'none';
+    }
+
+    // 3. Update labour summary display on input
+    if (labourInput && labourSummary) {
+        function updateLabourSummary() {
+            const val = parseFloat(labourInput.value) || 0;
+            labourSummary.textContent = 'Rs. ' + val.toFixed(2);
+        }
+        labourInput.addEventListener('input', updateLabourSummary);
+        updateLabourSummary();
+    }
+
+    // 4. Booking Preview on Selection Change
+    if (bookingSelect && previewCard) {
+        function updateBookingPreview() {
+            const opt = bookingSelect.options[bookingSelect.selectedIndex];
+            if (!opt || !opt.value) {
+                previewCard.classList.add('d-none');
+                return;
+            }
+            document.getElementById('preview-customer').textContent = opt.getAttribute('data-customer') || '-';
+            document.getElementById('preview-bike').textContent = opt.getAttribute('data-bike') || '-';
+            document.getElementById('preview-service').textContent = opt.getAttribute('data-service') || '-';
+            document.getElementById('preview-date').textContent = opt.getAttribute('data-date') || '-';
+            previewCard.classList.remove('d-none');
+        }
+        bookingSelect.addEventListener('change', updateBookingPreview);
+        updateBookingPreview();
+    }
+
+    // 5. Ensure newly added rows have options even if main.js fetch is delayed
+    document.addEventListener('click', function (e) {
+        if (e.target && (e.target.id === 'add-item-btn' || e.target.closest('#add-item-btn'))) {
+            setTimeout(function () {
+                checkPlaceholder();
+                const selects = itemsBody.querySelectorAll('.item-select');
+                selects.forEach(select => {
+                    if (select.options.length <= 1 && window.sparePartsCatalog && window.sparePartsCatalog.length > 0) {
+                        window.sparePartsCatalog.forEach(p => {
+                            const stockBadge = p.quantity <= 0 ? ' [OUT OF STOCK]' : ` (In Stock: ${p.quantity})`;
+                            const opt = document.createElement('option');
+                            opt.value = p.id;
+                            opt.setAttribute('data-price', p.unit_price);
+                            opt.setAttribute('data-stock', p.quantity);
+                            opt.textContent = `${p.name} - Rs. ${p.unit_price.toFixed(2)}${stockBadge}`;
+                            select.appendChild(opt);
+                        });
+                    }
+                });
+            }, 50);
+        }
+
+        if (e.target && (e.target.classList.contains('remove-item-btn') || e.target.closest('.remove-item-btn'))) {
+            setTimeout(checkPlaceholder, 50);
+        }
+    });
+
+    checkPlaceholder();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}Service History{% endblock %}
+
+{% block page_heading %}Service History{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Top Stats & Information Header -->
+    <div class="row g-3 mb-4">
+        <!-- Completed Service Record Summary -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="stat-card d-flex align-items-center justify-content-between h-100">
+                <div>
+                    <div class="stat-label mb-1">Total Completed Services</div>
+                    <div class="stat-value text-success">{{ total_completed }}</div>
+                    <small class="text-muted">Lifetime completed job cards</small>
+                </div>
+                <div class="stat-icon bg-success bg-opacity-10 text-success">
+                    <i class="bi bi-check2-all"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Count Metric -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="stat-card d-flex align-items-center justify-content-between h-100">
+                <div>
+                    <div class="stat-label mb-1">Matching Records</div>
+                    <div class="stat-value text-white">{{ bookings|length }}</div>
+                    <small class="text-muted">Filtered results on display</small>
+                </div>
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- RE Specialist Badge Card -->
+        <div class="col-12 col-md-12 col-lg-4">
+            <div class="stat-card d-flex align-items-center justify-content-between h-100">
+                <div>
+                    <div class="stat-label mb-1">Workshop Archive</div>
+                    <div class="stat-value text-danger">RE PRO</div>
+                    <small class="text-muted">Royal Enfield Service Archive</small>
+                </div>
+                <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+                    <i class="bi bi-shield-shaded"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Toolbar -->
+    <div class="card card-dark mb-4">
+        <div class="card-body p-3">
+            <form method="GET" action="{{ url_for('history.index') }}" class="row g-3 align-items-center">
+                <div class="col-12 col-md-8 col-lg-9">
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary text-muted">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text"
+                               name="q"
+                               class="form-control form-control-dark"
+                               placeholder="Search by Motorcycle Reg #, Customer Name, Mobile Number, or Model..."
+                               value="{{ search }}">
+                    </div>
+                </div>
+                <div class="col-12 col-md-4 col-lg-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-re px-3 flex-fill">
+                        <i class="bi bi-search me-1"></i> Search History
+                    </button>
+                    {% if search %}
+                    <a href="{{ url_for('history.index') }}" class="btn btn-outline-secondary px-3" title="Clear Search">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> Clear
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Completed Services Data Table Card -->
+    <div class="card card-dark shadow-sm">
+        <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-journal-check text-success"></i>
+                <span class="fw-bold">Completed Service Archive</span>
+                <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 ms-2">
+                    {{ total_completed }} Total Completed
+                </span>
+            </div>
+            {% if search %}
+            <div class="small text-muted">
+                Showing search results for: <span class="text-light fw-semibold">"{{ search }}"</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-dark-custom align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col" style="width: 50px;" class="text-center">#</th>
+                        <th scope="col" style="width: 120px;">Date</th>
+                        <th scope="col">Customer</th>
+                        <th scope="col">Motorcycle</th>
+                        <th scope="col">Service Type</th>
+                        <th scope="col" class="text-center" style="width: 170px;">Invoice</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in bookings %}
+                    <tr>
+                        <!-- # Index -->
+                        <td class="text-center text-muted small">{{ loop.index }}</td>
+
+                        <!-- Service Date -->
+                        <td>
+                            <div class="fw-semibold text-white">
+                                {{ booking.booking_date.strftime('%d %b %Y') if booking.booking_date else 'N/A' }}
+                            </div>
+                            <small class="text-muted" style="font-size: 0.75rem;">
+                                Booking #{{ "%04d"|format(booking.id) }}
+                            </small>
+                        </td>
+
+                        <!-- Customer Details -->
+                        <td>
+                            <div class="fw-bold text-light">
+                                {{ booking.customer.name }}
+                            </div>
+                            <div class="small text-muted d-flex align-items-center gap-1 mt-1">
+                                <i class="bi bi-telephone text-secondary"></i>
+                                <span>{{ booking.customer.mobile }}</span>
+                            </div>
+                        </td>
+
+                        <!-- Motorcycle (Reg Number + Model) -->
+                        <td>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="badge bg-dark border border-secondary text-warning font-monospace px-2 py-1">
+                                    <i class="bi bi-bicycle me-1 text-danger"></i>{{ booking.motorcycle.registration_number }}
+                                </span>
+                            </div>
+                            <div class="small text-light fw-medium">
+                                {{ booking.motorcycle.model }}
+                            </div>
+                        </td>
+
+                        <!-- Service Type -->
+                        <td>
+                            <div class="mb-1">
+                                <span class="badge badge-status-completed px-2 py-1">
+                                    <i class="bi bi-check-circle-fill me-1"></i>{{ booking.service_type }}
+                                </span>
+                            </div>
+                            {% if booking.problem_description %}
+                            <div class="small text-muted text-truncate" style="max-width: 260px;" title="{{ booking.problem_description }}">
+                                {{ booking.problem_description }}
+                            </div>
+                            {% endif %}
+                        </td>
+
+                        <!-- Invoice Link / N/A -->
+                        <td class="text-center">
+                            {% if booking.invoice %}
+                            <div class="d-inline-flex flex-column align-items-center">
+                                <a href="{{ url_for('billing.view', id=booking.invoice.id) }}"
+                                   class="btn btn-sm btn-outline-re d-inline-flex align-items-center gap-1 px-2 py-1"
+                                   title="View Invoice {{ booking.invoice.invoice_number }}">
+                                    <i class="bi bi-receipt"></i>
+                                    <span class="font-monospace fw-bold">{{ booking.invoice.invoice_number }}</span>
+                                </a>
+                                <div class="mt-1 small">
+                                    <span class="font-monospace fw-semibold text-light">Rs. {{ "%.2f"|format(booking.invoice.grand_total) }}</span>
+                                    &bull;
+                                    {% if booking.invoice.status == 'Paid' %}
+                                    <span class="badge badge-paid px-1 py-0" style="font-size: 0.7rem;">Paid</span>
+                                    {% else %}
+                                    <span class="badge badge-unpaid px-1 py-0" style="font-size: 0.7rem;">Unpaid</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% else %}
+                            <span class="badge bg-secondary bg-opacity-25 text-muted px-3 py-1">
+                                N/A
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="text-muted">
+                                <i class="bi bi-clock-history fs-1 d-block mb-3 text-secondary"></i>
+                                <h6 class="fw-semibold text-light">No service history records found</h6>
+                                {% if search %}
+                                <p class="small mb-3">No completed services match your search term <strong class="text-light">"{{ search }}"</strong>.</p>
+                                <a href="{{ url_for('history.index') }}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i> Clear Search
+                                </a>
+                                {% else %}
+                                <p class="small mb-3">Completed motorcycle services will automatically be archived here once serviced and invoiced.</p>
+                                <a href="{{ url_for('bookings.index') }}" class="btn btn-sm btn-re">
+                                    <i class="bi bi-tools me-1"></i> View Active Bookings
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if bookings %}
+        <div class="card-footer bg-dark border-top border-secondary border-opacity-25 py-2 px-3 d-flex justify-content-between align-items-center small text-muted">
+            <div>
+                Showing <strong class="text-light">{{ bookings|length }}</strong> completed service record(s)
+            </div>
+            <div>
+                <span class="badge bg-dark border border-secondary text-muted">
+                    <i class="bi bi-archive me-1"></i> Permanent Workshop History
+                </span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

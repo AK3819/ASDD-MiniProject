@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Service Booking{% endblock %}
+
+{% block page_heading %}{{ action }} Service Booking{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Breadcrumb & Back Navigation -->
+    <div class="mb-3">
+        <a href="{{ url_for('bookings.index') }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
+            <i class="bi bi-arrow-left"></i>
+            <span>Back to Service Bookings</span>
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-xl-9 col-lg-10 col-12">
+            <div class="card card-dark shadow-sm">
+                <!-- Card Header -->
+                <div class="card-header d-flex justify-content-between align-items-center py-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-tools text-danger fs-5"></i>
+                        <h5 class="mb-0 text-white fw-bold">
+                            {{ action }} Service Booking {% if booking %}#{{ booking.id }}{% endif %}
+                        </h5>
+                    </div>
+                    {% if booking %}
+                    <div>
+                        {% if booking.status == 'Pending' %}
+                        <span class="badge badge-status-pending px-2.5 py-1.5 rounded-pill">
+                            <i class="bi bi-clock-history me-1"></i>Pending
+                        </span>
+                        {% elif booking.status == 'In Progress' %}
+                        <span class="badge badge-status-progress px-2.5 py-1.5 rounded-pill">
+                            <i class="bi bi-gear-wide-connected me-1"></i>In Progress
+                        </span>
+                        {% elif booking.status == 'Completed' %}
+                        <span class="badge badge-status-completed px-2.5 py-1.5 rounded-pill">
+                            <i class="bi bi-check-circle me-1"></i>Completed
+                        </span>
+                        {% elif booking.status == 'Cancelled' %}
+                        <span class="badge badge-status-cancelled px-2.5 py-1.5 rounded-pill">
+                            <i class="bi bi-x-circle me-1"></i>Cancelled
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Card Body Form -->
+                <div class="card-body p-4">
+                    <form method="POST"
+                          action="{{ url_for('bookings.create') if action == 'Create' else url_for('bookings.edit', id=booking.id) }}"
+                          id="bookingForm"
+                          novalidate>
+
+                        {% if action == 'Edit' and booking %}
+                        <!-- Edit Mode: Customer & Motorcycle Readonly Information Cards -->
+                        <div class="mb-4">
+                            <h6 class="text-uppercase text-muted fw-bold small mb-3 tracking-wide">
+                                <i class="bi bi-info-circle me-1 text-danger"></i> Vehicle & Owner Details (Readonly)
+                            </h6>
+                            <div class="row g-3">
+                                <!-- Customer Info Card -->
+                                <div class="col-md-6 col-12">
+                                    <div class="p-3 rounded border border-secondary border-opacity-50 bg-dark h-100">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <span class="small text-muted text-uppercase fw-semibold">
+                                                <i class="bi bi-person me-1 text-danger"></i> Customer
+                                            </span>
+                                            <a href="{{ url_for('customers.edit', id=booking.customer.id) }}" class="small text-decoration-none text-danger" title="Edit Customer Details">
+                                                Edit <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                        </div>
+                                        <h5 class="text-white mb-1 fw-bold">{{ booking.customer.name }}</h5>
+                                        <div class="small text-light mb-1">
+                                            <i class="bi bi-telephone text-muted me-1"></i> {{ booking.customer.mobile }}
+                                        </div>
+                                        {% if booking.customer.email %}
+                                        <div class="small text-muted">
+                                            <i class="bi bi-envelope text-muted me-1"></i> {{ booking.customer.email }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Motorcycle Info Card -->
+                                <div class="col-md-6 col-12">
+                                    <div class="p-3 rounded border border-secondary border-opacity-50 bg-dark h-100">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <span class="small text-muted text-uppercase fw-semibold">
+                                                <i class="bi bi-bicycle me-1 text-danger"></i> Motorcycle
+                                            </span>
+                                            <a href="{{ url_for('motorcycles.edit', id=booking.motorcycle.id) }}" class="small text-decoration-none text-danger" title="Edit Motorcycle Details">
+                                                Edit <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <span class="badge bg-dark border border-secondary text-white font-monospace px-2 py-1 fs-6">
+                                                {{ booking.motorcycle.registration_number }}
+                                            </span>
+                                            <span class="text-light fw-semibold">{{ booking.motorcycle.model }}</span>
+                                        </div>
+                                        <div class="small text-muted d-flex align-items-center gap-3 mt-2">
+                                            <span><i class="bi bi-calendar3 me-1"></i> Year: {{ booking.motorcycle.manufacturing_year }}</span>
+                                            <span><i class="bi bi-speedometer2 me-1"></i> Odo: {{ booking.motorcycle.odometer_reading }} km</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="border-secondary border-opacity-25 my-4">
+                        {% endif %}
+
+                        {% if action == 'Create' %}
+                        <!-- Create Mode: Dynamic Customer & Motorcycle Selects -->
+                        <div class="mb-4">
+                            <h6 class="text-uppercase text-muted fw-bold small mb-3 tracking-wide">
+                                <i class="bi bi-person-badge me-1 text-danger"></i> Customer & Motorcycle Selection
+                            </h6>
+                            <div class="row g-3">
+                                <!-- Customer Select Dropdown -->
+                                <div class="col-md-6 col-12">
+                                    <label for="customer_id_select" class="form-label text-light fw-semibold">
+                                        Customer <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select form-select-dark"
+                                            id="customer_id_select"
+                                            name="customer_id"
+                                            required>
+                                        <option value="">-- Select Customer --</option>
+                                        {% for customer in customers %}
+                                        <option value="{{ customer.id }}"
+                                                {% if preselected_customer_id and preselected_customer_id == customer.id %}selected{% endif %}>
+                                            {{ customer.name }} ({{ customer.mobile }})
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text text-muted">
+                                        Select owner. Need to register a new client?
+                                        <a href="{{ url_for('customers.create') }}" class="text-danger text-decoration-none">Add Customer</a>.
+                                    </div>
+                                </div>
+
+                                <!-- Motorcycle Cascading Dropdown -->
+                                <div class="col-md-6 col-12">
+                                    <label for="motorcycle_id_select" class="form-label text-light fw-semibold">
+                                        Motorcycle <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select form-select-dark"
+                                            id="motorcycle_id_select"
+                                            name="motorcycle_id"
+                                            required>
+                                        {% if preselected_customer_id %}
+                                            <option value="">-- Select Motorcycle --</option>
+                                            {% for bike in motorcycles %}
+                                                {% if bike.customer_id == preselected_customer_id %}
+                                                <option value="{{ bike.id }}"
+                                                        {% if preselected_motorcycle_id and preselected_motorcycle_id == bike.id %}selected{% endif %}>
+                                                    {{ bike.registration_number }} ({{ bike.model }}) - {{ bike.odometer_reading }} km
+                                                </option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% else %}
+                                            <option value="">-- First Select Customer --</option>
+                                        {% endif %}
+                                    </select>
+                                    <div class="form-text text-muted">
+                                        Populated automatically based on the selected customer.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="border-secondary border-opacity-25 my-4">
+                        {% endif %}
+
+                        <!-- Service Details Section -->
+                        <div class="mb-4">
+                            <h6 class="text-uppercase text-muted fw-bold small mb-3 tracking-wide">
+                                <i class="bi bi-wrench-adjustable me-1 text-danger"></i> Service Specifications
+                            </h6>
+                            <div class="row g-3">
+                                <!-- Service Type Dropdown -->
+                                <div class="col-md-6 col-12">
+                                    <label for="service_type" class="form-label text-light fw-semibold">
+                                        Service Type <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select form-select-dark"
+                                            id="service_type"
+                                            name="service_type"
+                                            required>
+                                        <option value="">-- Choose Service Type --</option>
+                                        {% for st in service_types %}
+                                        <option value="{{ st }}"
+                                                {% if (booking and booking.service_type == st) or (not booking and request.form.get('service_type') == st) %}selected{% endif %}>
+                                            {{ st }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <!-- Booking Date -->
+                                <div class="col-md-6 col-12">
+                                    <label for="booking_date" class="form-label text-light fw-semibold">
+                                        Booking Date <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="date"
+                                           class="form-control form-control-dark"
+                                           id="booking_date"
+                                           name="booking_date"
+                                           value="{{ booking.booking_date.strftime('%Y-%m-%d') if booking and booking.booking_date else '' }}"
+                                           required>
+                                </div>
+
+                                <!-- Estimated Cost (Rs.) -->
+                                <div class="col-md-6 col-12">
+                                    <label for="estimated_cost" class="form-label text-light fw-semibold">
+                                        Estimated Cost (₹)
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-dark border-secondary text-muted">₹</span>
+                                        <input type="number"
+                                               step="0.01"
+                                               min="0"
+                                               class="form-control form-control-dark"
+                                               id="estimated_cost"
+                                               name="estimated_cost"
+                                               value="{{ '%.2f'|format(booking.estimated_cost) if booking and booking.estimated_cost is not none else '0.00' }}"
+                                               placeholder="0.00">
+                                    </div>
+                                    <div class="form-text text-muted">Initial workshop estimate for customer appraisal.</div>
+                                </div>
+
+                                <!-- Booking Status -->
+                                <div class="col-md-6 col-12">
+                                    <label for="status" class="form-label text-light fw-semibold">
+                                        Service Status <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select form-select-dark"
+                                            id="status"
+                                            name="status"
+                                            required>
+                                        {% for choice in status_choices %}
+                                        <option value="{{ choice }}"
+                                                {% if (booking and booking.status == choice) or (not booking and choice == 'Pending') %}selected{% endif %}>
+                                            {{ choice }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text text-muted">Initial status for new jobs is typically 'Pending'.</div>
+                                </div>
+
+                                <!-- Problem Description / Remarks -->
+                                <div class="col-12">
+                                    <label for="problem_description" class="form-label text-light fw-semibold">
+                                        Problem Description / Customer Remarks
+                                    </label>
+                                    <textarea class="form-control form-control-dark"
+                                              id="problem_description"
+                                              name="problem_description"
+                                              rows="4"
+                                              placeholder="Document reported issues (e.g. engine noise, tappet sound, hard clutch, brake fade, oil leak, or requested oil brand)...">{{ booking.problem_description if booking and booking.problem_description else '' }}</textarea>
+                                    <div class="form-text text-muted">Provide any specific symptoms or technician check items.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Action Buttons -->
+                        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top border-secondary border-opacity-25 flex-wrap gap-2">
+                            <a href="{{ url_for('bookings.index') }}" class="btn btn-outline-secondary px-4">
+                                <i class="bi bi-x-circle me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-re px-4 d-inline-flex align-items-center gap-1">
+                                <i class="bi bi-check-lg"></i>
+                                <span>{{ 'Create Service Booking' if action == 'Create' else 'Update Service Booking' }}</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Set default date to today for Create action if empty
+        const bookingDateInput = document.getElementById('booking_date');
+        if (bookingDateInput && !bookingDateInput.value) {
+            const today = new Date().toISOString().split('T')[0];
+            bookingDateInput.value = today;
+        }
+
+        // Form validation feedback
+        const bookingForm = document.getElementById('bookingForm');
+        if (bookingForm) {
+            bookingForm.addEventListener('submit', function (e) {
+                if (!bookingForm.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                bookingForm.classList.add('was-validated');
+            });
+        }
+    });
+</script>
+{% endblock %}

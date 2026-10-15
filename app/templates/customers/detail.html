@@ -1,0 +1,360 @@
+{% extends "base.html" %}
+
+{% block title %}{{ customer.name }} - Customer Details - RE Garage{% endblock %}
+
+{% block page_heading %}Customer Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Breadcrumb & Top Bar -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('dashboard.index') }}" class="text-decoration-none text-muted">
+                        <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('customers.index') }}" class="text-decoration-none text-muted">
+                        <i class="bi bi-people me-1"></i>Customers
+                    </a>
+                </li>
+                <li class="breadcrumb-item active text-white" aria-current="page">{{ customer.name }}</li>
+            </ol>
+        </nav>
+
+        <!-- Top Action Buttons: Back, Edit, Delete, Book Service -->
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <a href="{{ url_for('customers.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1">
+                <i class="bi bi-arrow-left"></i>
+                <span>Back to List</span>
+            </a>
+
+            <a href="{{ url_for('customers.edit', id=customer.id) }}" class="btn btn-outline-warning d-inline-flex align-items-center gap-1">
+                <i class="bi bi-pencil-square"></i>
+                <span>Edit Customer</span>
+            </a>
+
+            <form method="POST"
+                  action="{{ url_for('customers.delete', id=customer.id) }}"
+                  class="d-inline"
+                  onsubmit="return confirm('Are you sure you want to delete customer \'{{ customer.name|escape }}\'? This action will also delete related records.');">
+                <button type="submit" class="btn btn-outline-danger d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-trash"></i>
+                    <span>Delete</span>
+                </button>
+            </form>
+
+            <a href="{{ url_for('motorcycles.add', customer_id=customer.id) }}" class="btn btn-outline-re d-inline-flex align-items-center gap-1">
+                <i class="bi bi-bicycle"></i>
+                <span>Add Motorcycle</span>
+            </a>
+
+            <a href="{{ url_for('bookings.create', customer_id=customer.id) }}" class="btn btn-re d-inline-flex align-items-center gap-1">
+                <i class="bi bi-plus-circle"></i>
+                <span>Book Service</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Customer Profile Card -->
+    <div class="card card-dark mb-4">
+        <div class="card-body p-4">
+            <div class="row g-4 align-items-center">
+                <!-- Avatar & Identity -->
+                <div class="col-12 col-md-auto text-center text-md-start">
+                    <div class="rounded-circle bg-danger bg-opacity-25 text-danger d-inline-flex align-items-center justify-content-center fw-bold shadow-sm"
+                         style="width: 80px; height: 80px; font-size: 2.25rem;">
+                        {{ customer.name[:1].upper() }}
+                    </div>
+                </div>
+
+                <!-- Main Info -->
+                <div class="col-12 col-md">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                        <h3 class="text-white fw-bold mb-0">{{ customer.name }}</h3>
+                        <span class="badge bg-dark border border-secondary text-muted">ID #{{ customer.id }}</span>
+                    </div>
+                    <div class="text-muted small mb-3">
+                        <i class="bi bi-calendar3 me-1"></i>Registered on:
+                        <span class="text-light">
+                            {% if customer.created_at %}
+                                {{ customer.created_at.strftime('%d %B %Y') }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <!-- Contact Details Grid -->
+                    <div class="row g-3">
+                        <div class="col-12 col-sm-6 col-lg-4">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="text-danger fs-5"><i class="bi bi-telephone-fill"></i></div>
+                                <div>
+                                    <div class="text-muted small text-uppercase fw-semibold" style="font-size: 0.72rem;">Mobile Number</div>
+                                    <a href="tel:{{ customer.mobile }}" class="text-white text-decoration-none font-monospace fw-semibold">
+                                        {{ customer.mobile }}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-sm-6 col-lg-4">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="text-danger fs-5"><i class="bi bi-envelope-fill"></i></div>
+                                <div>
+                                    <div class="text-muted small text-uppercase fw-semibold" style="font-size: 0.72rem;">Email Address</div>
+                                    {% if customer.email %}
+                                    <a href="mailto:{{ customer.email }}" class="text-white text-decoration-none">
+                                        {{ customer.email }}
+                                    </a>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">Not Provided</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-4">
+                            <div class="d-flex align-items-start gap-2">
+                                <div class="text-danger fs-5 mt-1"><i class="bi bi-geo-alt-fill"></i></div>
+                                <div>
+                                    <div class="text-muted small text-uppercase fw-semibold" style="font-size: 0.72rem;">Garage / Home Address</div>
+                                    {% if customer.address %}
+                                    <span class="text-light small">{{ customer.address }}</span>
+                                    {% else %}
+                                    <span class="text-muted fst-italic">Not Provided</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Counters -->
+                <div class="col-12 col-md-auto border-top border-md-top-0 border-md-start border-secondary border-opacity-25 pt-3 pt-md-0 ps-md-4">
+                    <div class="d-flex d-md-block justify-content-around text-center gap-4">
+                        <div class="mb-md-3">
+                            <div class="fs-3 fw-bold text-white">{{ customer.motorcycles|length }}</div>
+                            <div class="text-muted small text-uppercase" style="font-size: 0.7rem;">Motorcycles</div>
+                        </div>
+                        <div>
+                            <div class="fs-3 fw-bold text-white">{{ customer.bookings|length }}</div>
+                            <div class="text-muted small text-uppercase" style="font-size: 0.7rem;">Service Orders</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section: Registered Motorcycles -->
+    <div class="card card-dark shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-bicycle text-danger fs-5"></i>
+                <span class="fw-bold">Registered Motorcycles</span>
+                <span class="badge bg-dark border border-secondary text-light ms-1">{{ customer.motorcycles|length }}</span>
+            </div>
+            <a href="{{ url_for('motorcycles.add', customer_id=customer.id) }}" class="btn btn-sm btn-outline-re d-inline-flex align-items-center gap-1">
+                <i class="bi bi-plus"></i> Add Motorcycle
+            </a>
+        </div>
+
+        <div class="card-body p-0">
+            {% if customer.motorcycles and customer.motorcycles|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-dark-custom align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th scope="col" style="width: 50px;" class="text-center">#</th>
+                            <th scope="col">Registration Number</th>
+                            <th scope="col">Model</th>
+                            <th scope="col">Manufacturing Year</th>
+                            <th scope="col">Odometer Reading</th>
+                            <th scope="col" class="text-end" style="min-width: 170px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bike in customer.motorcycles %}
+                        <tr>
+                            <td class="text-center text-muted fw-semibold">{{ loop.index }}</td>
+                            <td>
+                                <span class="badge bg-dark border border-danger text-white font-monospace px-2 py-1 fs-6">
+                                    {{ bike.registration_number }}
+                                </span>
+                            </td>
+                            <td>
+                                <strong class="text-light">{{ bike.model }}</strong>
+                            </td>
+                            <td>
+                                <span class="text-muted">{{ bike.manufacturing_year }}</span>
+                            </td>
+                            <td>
+                                <span class="font-monospace text-light">
+                                    <i class="bi bi-speedometer2 text-danger me-1"></i>{{ "{:,}".format(bike.odometer_reading) }} km
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <div class="d-inline-flex align-items-center gap-1">
+                                    <!-- Book Service for this bike -->
+                                    <a href="{{ url_for('bookings.create', customer_id=customer.id, motorcycle_id=bike.id) }}"
+                                       class="btn btn-sm btn-outline-re"
+                                       title="New Service for this bike">
+                                        <i class="bi bi-wrench"></i>
+                                    </a>
+
+                                    <!-- Edit Motorcycle -->
+                                    <a href="{{ url_for('motorcycles.edit', id=bike.id) }}"
+                                       class="btn btn-sm btn-outline-secondary"
+                                       title="Edit Motorcycle">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+
+                                    <!-- Delete Motorcycle Form -->
+                                    <form method="POST"
+                                          action="{{ url_for('motorcycles.delete', id=bike.id) }}"
+                                          class="d-inline"
+                                          onsubmit="return confirm('Are you sure you want to delete motorcycle \'{{ bike.registration_number }}\'?');">
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-danger"
+                                                title="Delete Motorcycle">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <!-- No Motorcycles Empty State -->
+            <div class="text-center py-4 px-3">
+                <i class="bi bi-bicycle text-muted fs-1 mb-2 d-block"></i>
+                <h6 class="text-white fw-bold mb-1">No Motorcycles Registered</h6>
+                <p class="text-muted small mb-3">Add a Royal Enfield motorcycle for {{ customer.name }} to create service bookings.</p>
+                <a href="{{ url_for('motorcycles.add', customer_id=customer.id) }}" class="btn btn-sm btn-re">
+                    <i class="bi bi-plus-circle me-1"></i> Register Motorcycle
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Section: Service History & Bookings -->
+    <div class="card card-dark shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-tools text-danger fs-5"></i>
+                <span class="fw-bold">Service Bookings & History</span>
+                <span class="badge bg-dark border border-secondary text-light ms-1">{{ customer.bookings|length }}</span>
+            </div>
+            <a href="{{ url_for('bookings.create', customer_id=customer.id) }}" class="btn btn-sm btn-re d-inline-flex align-items-center gap-1">
+                <i class="bi bi-plus"></i> New Service Booking
+            </a>
+        </div>
+
+        <div class="card-body p-0">
+            {% if customer.bookings and customer.bookings|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-dark-custom align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th scope="col" style="width: 80px;">Order #</th>
+                            <th scope="col">Motorcycle</th>
+                            <th scope="col">Service Type</th>
+                            <th scope="col">Booking Date</th>
+                            <th scope="col">Est. Cost</th>
+                            <th scope="col" class="text-center">Status</th>
+                            <th scope="col" class="text-end" style="min-width: 140px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in customer.bookings|sort(attribute='booking_date', reverse=True) %}
+                        <tr>
+                            <td>
+                                <strong class="text-white">#{{ booking.id }}</strong>
+                            </td>
+                            <td>
+                                {% if booking.motorcycle %}
+                                <div class="fw-semibold text-light">{{ booking.motorcycle.model }}</div>
+                                <div class="font-monospace text-muted small">{{ booking.motorcycle.registration_number }}</div>
+                                {% else %}
+                                <span class="text-muted">&mdash;</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="text-light fw-medium">{{ booking.service_type }}</span>
+                                {% if booking.problem_description %}
+                                <div class="text-muted small text-truncate" style="max-width: 200px;" title="{{ booking.problem_description }}">
+                                    {{ booking.problem_description }}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="text-light small">
+                                    <i class="bi bi-calendar3 me-1 text-muted"></i>{{ booking.booking_date.strftime('%d %b %Y') }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="fw-semibold text-white">₹{{ "%.2f"|format(booking.estimated_cost) }}</span>
+                            </td>
+                            <td class="text-center">
+                                {% if booking.status == 'Pending' %}
+                                <span class="badge badge-status-pending px-2 py-1">Pending</span>
+                                {% elif booking.status == 'In Progress' %}
+                                <span class="badge badge-status-progress px-2 py-1">In Progress</span>
+                                {% elif booking.status == 'Completed' %}
+                                <span class="badge badge-status-completed px-2 py-1">Completed</span>
+                                {% elif booking.status == 'Cancelled' %}
+                                <span class="badge badge-status-cancelled px-2 py-1">Cancelled</span>
+                                {% else %}
+                                <span class="badge bg-secondary px-2 py-1">{{ booking.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="d-inline-flex align-items-center gap-1">
+                                    <!-- Edit Booking -->
+                                    <a href="{{ url_for('bookings.edit', id=booking.id) }}"
+                                       class="btn btn-sm btn-outline-secondary"
+                                       title="Edit Booking">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+
+                                    <!-- Delete Booking Form -->
+                                    <form method="POST"
+                                          action="{{ url_for('bookings.delete', id=booking.id) }}"
+                                          class="d-inline"
+                                          onsubmit="return confirm('Are you sure you want to delete service booking #{{ booking.id }}?');">
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-danger"
+                                                title="Delete Booking">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <!-- No Bookings Empty State -->
+            <div class="text-center py-4 px-3">
+                <i class="bi bi-tools text-muted fs-1 mb-2 d-block"></i>
+                <h6 class="text-white fw-bold mb-1">No Service Bookings Found</h6>
+                <p class="text-muted small mb-3">This customer hasn't booked any service appointments yet.</p>
+                <a href="{{ url_for('bookings.create', customer_id=customer.id) }}" class="btn btn-sm btn-re">
+                    <i class="bi bi-plus-circle me-1"></i> Create First Booking
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

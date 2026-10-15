@@ -1,0 +1,36 @@
+# Virtual Environments
+venv/
+.venv/
+env/
+
+# Python Cache & Bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Git Version Control
+.git/
+.gitignore
+
+# Environment & Secrets
+.env
+*.env
+
+# SQLite Database (persisted via Docker volumes, not baked into image)
+instance/*.db
+*.sqlite3
+
+# CI/CD Workflows & IDE Configurations
+.github/
+.vscode/
+.idea/
+
+# Testing & Documentation (keep image lean)
+tests/
+docs/
+
+# Exclude Markdown documentation except the main README
+*.md
+!README.md

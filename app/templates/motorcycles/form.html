@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Motorcycle{% endblock %}
+
+{% block page_heading %}{{ action }} Motorcycle{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+    <!-- Back Navigation & Breadcrumb -->
+    <div class="mb-3">
+        <a href="{{ url_for('motorcycles.index') }}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1">
+            <i class="bi bi-arrow-left"></i>
+            <span>Back to Motorcycles</span>
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8 col-xl-7">
+            <div class="card card-dark shadow-sm">
+                <div class="card-header py-3 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-bicycle text-danger fs-5"></i>
+                        <h5 class="mb-0 text-white fw-bold">{{ action }} Motorcycle</h5>
+                    </div>
+                    {% if action == 'Edit' and motorcycle %}
+                    <span class="badge bg-dark border border-secondary font-monospace text-warning text-uppercase">
+                        {{ motorcycle.registration_number }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                <div class="card-body p-4">
+                    <form method="POST"
+                          action="{% if action == 'Edit' %}{{ url_for('motorcycles.edit', id=motorcycle.id) }}{% else %}{{ url_for('motorcycles.add') }}{% endif %}"
+                          novalidate>
+                        
+                        <!-- 1. Customer Selection -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label for="customer_id" class="form-label text-light fw-medium mb-0">
+                                    <i class="bi bi-person text-danger me-1"></i> Owner / Customer <span class="text-danger">*</span>
+                                </label>
+                                <a href="{{ url_for('customers.add') }}" class="small text-danger text-decoration-none">
+                                    <i class="bi bi-plus-circle me-1"></i>New Customer
+                                </a>
+                            </div>
+
+                            {% set selected_cust = (motorcycle.customer_id if motorcycle else (preselected_customer_id if preselected_customer_id else (request.form.get('customer_id')|int if request.form.get('customer_id') else 0))) %}
+                            <select id="customer_id" name="customer_id" class="form-select form-select-dark" required>
+                                <option value="" disabled {% if not selected_cust %}selected{% endif %}>-- Select Customer --</option>
+                                {% for c in customers %}
+                                <option value="{{ c.id }}" {% if selected_cust == c.id %}selected{% endif %}>
+                                    {{ c.name }} &bull; {{ c.mobile }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if not customers %}
+                            <div class="form-text text-warning">
+                                <i class="bi bi-exclamation-triangle me-1"></i> No registered customers found. Please add a customer first.
+                            </div>
+                            {% else %}
+                            <div class="form-text text-muted">
+                                Select the owner of this motorcycle.
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- 2. Registration Number -->
+                        <div class="mb-3">
+                            <label for="registration_number" class="form-label text-light fw-medium mb-1">
+                                <i class="bi bi-card-text text-danger me-1"></i> Registration Number <span class="text-danger">*</span>
+                            </label>
+                            {% set current_reg = motorcycle.registration_number if motorcycle else (request.form.get('registration_number') or '') %}
+                            <input type="text"
+                                   id="registration_number"
+                                   name="registration_number"
+                                   class="form-control form-control-dark font-monospace text-uppercase"
+                                   placeholder="e.g. MH12AB1234"
+                                   value="{{ current_reg }}"
+                                   required
+                                   oninput="this.value = this.value.toUpperCase()">
+                            <div class="form-text text-muted">
+                                Enter the official vehicle number plate (e.g., MH12AB1234, DL01A9876).
+                            </div>
+                        </div>
+
+                        <!-- 3. Model Dropdown -->
+                        <div class="mb-3">
+                            <label for="model" class="form-label text-light fw-medium mb-1">
+                                <i class="bi bi-tag text-danger me-1"></i> Motorcycle Model <span class="text-danger">*</span>
+                            </label>
+                            {% set current_model = motorcycle.model if motorcycle else (request.form.get('model') or '') %}
+                            <select id="model" name="model" class="form-select form-select-dark" required>
+                                <option value="" disabled {% if not current_model %}selected{% endif %}>-- Select Royal Enfield Model --</option>
+                                {% for m in models %}
+                                <option value="{{ m }}" {% if current_model == m %}selected{% endif %}>
+                                    {{ m }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text text-muted">
+                                Select the Royal Enfield model series.
+                            </div>
+                        </div>
+
+                        <!-- 4 & 5. Manufacturing Year & Odometer Reading -->
+                        <div class="row g-3 mb-4">
+                            <!-- Manufacturing Year -->
+                            <div class="col-12 col-sm-6">
+                                <label for="manufacturing_year" class="form-label text-light fw-medium mb-1">
+                                    <i class="bi bi-calendar3 text-danger me-1"></i> Manufacturing Year <span class="text-danger">*</span>
+                                </label>
+                                {% set current_year = motorcycle.manufacturing_year if motorcycle else (request.form.get('manufacturing_year') or 2023) %}
+                                <input type="number"
+                                       id="manufacturing_year"
+                                       name="manufacturing_year"
+                                       class="form-control form-control-dark"
+                                       min="1950"
+                                       max="2099"
+                                       placeholder="e.g. 2022"
+                                       value="{{ current_year }}"
+                                       required>
+                                <div class="form-text text-muted">
+                                    Year of manufacture (1950 - present).
+                                </div>
+                            </div>
+
+                            <!-- Odometer Reading -->
+                            <div class="col-12 col-sm-6">
+                                <label for="odometer_reading" class="form-label text-light fw-medium mb-1">
+                                    <i class="bi bi-speedometer2 text-danger me-1"></i> Current Odometer
+                                </label>
+                                {% set current_odo = motorcycle.odometer_reading if motorcycle else (request.form.get('odometer_reading') or 0) %}
+                                <div class="input-group">
+                                    <input type="number"
+                                           id="odometer_reading"
+                                           name="odometer_reading"
+                                           class="form-control form-control-dark font-monospace"
+                                           min="0"
+                                           step="1"
+                                           placeholder="0"
+                                           value="{{ current_odo }}">
+                                    <span class="input-group-text bg-dark border-secondary text-muted">km</span>
+                                </div>
+                                <div class="form-text text-muted">
+                                    Total kilometers traveled to date.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex align-items-center justify-content-end gap-2 pt-3 border-top border-secondary border-opacity-25">
+                            <a href="{{ url_for('motorcycles.index') }}" class="btn btn-outline-secondary px-4">
+                                <i class="bi bi-x-circle me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-re px-4">
+                                <i class="bi bi-check-circle-fill me-1"></i> {{ action }} Motorcycle
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

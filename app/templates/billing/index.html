@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}Billing & Invoices{% endblock %}
+
+{% block page_heading %}Billing & Invoices{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Top Summary Stat Cards -->
+    <div class="row g-3 mb-4">
+        <!-- Total Invoices -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card d-flex align-items-center justify-content-between h-100">
+                <div>
+                    <div class="stat-label">Total Invoices</div>
+                    <div class="stat-value mt-1">{{ total_invoices_count }}</div>
+                    <small class="text-muted">All-time generated</small>
+                </div>
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                    <i class="bi bi-receipt"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paid Invoices -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card d-flex align-items-center justify-content-between h-100">
+                <div>
+                    <div class="stat-label">Paid Invoices</div>
+                    <div class="stat-value text-success mt-1">{{ paid_count }}</div>
+                    <small class="text-muted">Settled accounts</small>
+                </div>
+                <div class="stat-icon bg-success bg-opacity-10 text-success">
+                    <i class="bi bi-check2-circle"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Unpaid Invoices -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card d-flex align-items-center justify-content-between h-100">
+                <div>
+                    <div class="stat-label">Unpaid Invoices</div>
+                    <div class="stat-value text-danger mt-1">{{ unpaid_count }}</div>
+                    <small class="text-muted">Pending clearance</small>
+                </div>
+                <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Billed Amount -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card d-flex align-items-center justify-content-between h-100">
+                <div>
+                    <div class="stat-label">Total Billed</div>
+                    <div class="stat-value text-warning mt-1">₹{{ "%.2f"|format(total_billed) }}</div>
+                    <small class="text-muted">Filtered total revenue</small>
+                </div>
+                <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter, Search & Action Bar -->
+    <div class="card-dark p-3 mb-4">
+        <div class="row g-3 align-items-center justify-content-between">
+            <!-- Status Filter Pills -->
+            <div class="col-12 col-lg-auto">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="text-muted small fw-semibold me-1"><i class="bi bi-funnel me-1"></i>Filter:</span>
+                    <a href="{{ url_for('billing.index', q=search) }}" 
+                       class="btn btn-sm {% if not selected_status %}btn-danger{% else %}btn-outline-secondary text-light{% endif %} rounded-pill px-3">
+                        All ({{ total_invoices_count }})
+                    </a>
+                    <a href="{{ url_for('billing.index', status='Paid', q=search) }}" 
+                       class="btn btn-sm {% if selected_status == 'Paid' %}btn-success{% else %}btn-outline-secondary text-light{% endif %} rounded-pill px-3">
+                        <i class="bi bi-check-circle me-1"></i>Paid ({{ paid_count }})
+                    </a>
+                    <a href="{{ url_for('billing.index', status='Unpaid', q=search) }}" 
+                       class="btn btn-sm {% if selected_status == 'Unpaid' %}btn-danger{% else %}btn-outline-secondary text-light{% endif %} rounded-pill px-3">
+                        <i class="bi bi-exclamation-circle me-1"></i>Unpaid ({{ unpaid_count }})
+                    </a>
+                </div>
+            </div>
+
+            <!-- Search Form and Create Button -->
+            <div class="col-12 col-lg-auto">
+                <div class="d-flex align-items-center gap-2 flex-wrap flex-sm-nowrap">
+                    <form method="GET" action="{{ url_for('billing.index') }}" class="d-flex align-items-center gap-2">
+                        {% if selected_status %}
+                        <input type="hidden" name="status" value="{{ selected_status }}">
+                        {% endif %}
+                        <div class="input-group input-group-sm" style="min-width: 260px;">
+                            <span class="input-group-text bg-dark border-secondary text-muted">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" 
+                                   name="q" 
+                                   class="form-control form-control-dark border-secondary" 
+                                   placeholder="Search invoice #, customer, bike..." 
+                                   value="{{ search or '' }}">
+                            {% if search %}
+                            <a href="{{ url_for('billing.index', status=selected_status) }}" class="btn btn-outline-secondary" title="Clear search">
+                                <i class="bi bi-x"></i>
+                            </a>
+                            {% endif %}
+                            <button type="submit" class="btn btn-secondary">Search</button>
+                        </div>
+                    </form>
+
+                    <a href="{{ url_for('billing.create') }}" class="btn btn-re btn-sm text-nowrap d-inline-flex align-items-center gap-1 shadow-sm">
+                        <i class="bi bi-plus-lg"></i> Create Invoice
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoices Table Card -->
+    <div class="card card-dark">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-receipt-cutoff text-danger"></i>
+                <span class="fw-bold">Invoices Directory</span>
+                <span class="badge bg-secondary bg-opacity-50 text-light ms-1">{{ invoices|length }}</span>
+            </div>
+            {% if search or selected_status %}
+            <div>
+                <a href="{{ url_for('billing.index') }}" class="btn btn-sm btn-outline-secondary text-light py-0 px-2" style="font-size: 0.8rem;">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>Reset Filters
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-dark-custom align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 130px;">Invoice #</th>
+                        <th style="width: 120px;">Date</th>
+                        <th>Customer</th>
+                        <th>Motorcycle</th>
+                        <th class="text-end" style="width: 120px;">Labour</th>
+                        <th class="text-end" style="width: 120px;">Parts</th>
+                        <th class="text-end" style="width: 130px;">Grand Total</th>
+                        <th class="text-center" style="width: 110px;">Status</th>
+                        <th class="text-center" style="width: 100px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in invoices %}
+                    <tr>
+                        <!-- Invoice Number -->
+                        <td>
+                            <a href="{{ url_for('billing.view', id=invoice.id) }}" class="fw-bold text-danger text-decoration-none">
+                                {{ invoice.invoice_number }}
+                            </a>
+                        </td>
+
+                        <!-- Date -->
+                        <td class="text-muted small">
+                            <i class="bi bi-calendar3 me-1"></i>{{ invoice.invoice_date.strftime('%d %b %Y') }}
+                        </td>
+
+                        <!-- Customer -->
+                        <td>
+                            <div class="fw-semibold text-white">{{ invoice.customer.name }}</div>
+                            <div class="text-muted small">
+                                <i class="bi bi-telephone me-1"></i>{{ invoice.customer.mobile }}
+                            </div>
+                        </td>
+
+                        <!-- Motorcycle -->
+                        <td>
+                            <span class="badge bg-secondary bg-opacity-25 border border-secondary text-light">
+                                {{ invoice.motorcycle.registration_number }}
+                            </span>
+                            <div class="text-muted small mt-1">
+                                {{ invoice.motorcycle.model }}
+                            </div>
+                        </td>
+
+                        <!-- Labour Charge -->
+                        <td class="text-end text-light">
+                            ₹{{ "%.2f"|format(invoice.labour_charge) }}
+                        </td>
+
+                        <!-- Parts Total -->
+                        <td class="text-end text-light">
+                            ₹{{ "%.2f"|format(invoice.parts_total) }}
+                        </td>
+
+                        <!-- Grand Total -->
+                        <td class="text-end">
+                            <span class="fw-bold text-warning fs-6">
+                                ₹{{ "%.2f"|format(invoice.grand_total) }}
+                            </span>
+                        </td>
+
+                        <!-- Status Badge -->
+                        <td class="text-center">
+                            {% if invoice.status == 'Paid' %}
+                            <span class="badge badge-paid px-2 py-1">
+                                <i class="bi bi-check-circle-fill me-1"></i>Paid
+                            </span>
+                            {% else %}
+                            <span class="badge badge-unpaid px-2 py-1">
+                                <i class="bi bi-clock-fill me-1"></i>Unpaid
+                            </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Actions -->
+                        <td class="text-center">
+                            <a href="{{ url_for('billing.view', id=invoice.id) }}" 
+                               class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1"
+                               title="View & Print Invoice">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center py-5">
+                            <div class="d-flex flex-column align-items-center justify-content-center text-muted">
+                                <div class="p-3 rounded-circle bg-dark border border-secondary mb-3">
+                                    <i class="bi bi-receipt fs-1 text-danger"></i>
+                                </div>
+                                <h6 class="text-white fw-bold">No Invoices Found</h6>
+                                <p class="small mb-3" style="max-width: 400px;">
+                                    {% if search or selected_status %}
+                                    No invoices matched your current filter criteria. Try resetting your search or filter options.
+                                    {% else %}
+                                    No invoices have been billed yet. Create an invoice from an eligible service booking to get started.
+                                    {% endif %}
+                                </p>
+                                <div class="d-flex gap-2">
+                                    {% if search or selected_status %}
+                                    <a href="{{ url_for('billing.index') }}" class="btn btn-sm btn-outline-secondary text-light">
+                                        <i class="bi bi-arrow-counterclockwise me-1"></i>Clear Filters
+                                    </a>
+                                    {% endif %}
+                                    <a href="{{ url_for('billing.create') }}" class="btn btn-sm btn-re">
+                                        <i class="bi bi-plus-lg me-1"></i>Create Invoice
+                                    </a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if invoices %}
+        <div class="card-footer bg-dark border-top border-secondary border-opacity-25 py-2 px-3 d-flex justify-content-between align-items-center text-muted small">
+            <div>
+                Showing <strong>{{ invoices|length }}</strong> of <strong>{{ total_invoices_count }}</strong> total invoices
+            </div>
+            <div>
+                Payment Method breakdown available in detailed invoice views
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

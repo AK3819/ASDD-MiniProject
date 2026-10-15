@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Customer - RE Garage{% endblock %}
+
+{% block page_heading %}{{ action }} Customer{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('dashboard.index') }}" class="text-decoration-none text-muted">
+                    <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('customers.index') }}" class="text-decoration-none text-muted">
+                    <i class="bi bi-people me-1"></i>Customers
+                </a>
+            </li>
+            {% if action == 'Edit' and customer %}
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('customers.detail', id=customer.id) }}" class="text-decoration-none text-muted">
+                    {{ customer.name }}
+                </a>
+            </li>
+            {% endif %}
+            <li class="breadcrumb-item active text-white" aria-current="page">{{ action }} Customer</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8 col-xl-7">
+            <div class="card card-dark shadow-sm">
+                <!-- Card Header -->
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        {% if action == 'Edit' %}
+                        <i class="bi bi-person-gear text-danger fs-5"></i>
+                        <span class="fw-bold">Edit Customer Profile</span>
+                        {% else %}
+                        <i class="bi bi-person-plus-fill text-danger fs-5"></i>
+                        <span class="fw-bold">Register New Customer</span>
+                        {% endif %}
+                    </div>
+                    {% if action == 'Edit' and customer %}
+                    <span class="badge bg-dark border border-secondary text-muted">
+                        ID #{{ customer.id }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Form Body -->
+                <div class="card-body p-4">
+                    <form method="POST"
+                          action="{{ url_for('customers.edit', id=customer.id) if action == 'Edit' else url_for('customers.add') }}"
+                          novalidate>
+
+                        <!-- Customer Name -->
+                        <div class="mb-3">
+                            <label for="name" class="form-label text-light fw-semibold">
+                                Customer Name <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-muted">
+                                    <i class="bi bi-person"></i>
+                                </span>
+                                <input type="text"
+                                       class="form-control form-control-dark"
+                                       id="name"
+                                       name="name"
+                                       placeholder="Enter full name (e.g., Rajesh Kumar)"
+                                       value="{{ customer.name if customer else '' }}"
+                                       required
+                                       maxlength="100">
+                            </div>
+                            <div class="form-text text-muted">Primary contact name for motorcycle service orders.</div>
+                        </div>
+
+                        <!-- Mobile Number -->
+                        <div class="mb-3">
+                            <label for="mobile" class="form-label text-light fw-semibold">
+                                Mobile Number <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-muted">
+                                    <i class="bi bi-telephone"></i>
+                                </span>
+                                <input type="tel"
+                                       class="form-control form-control-dark"
+                                       id="mobile"
+                                       name="mobile"
+                                       placeholder="10-digit mobile number (e.g., 9876543210)"
+                                       value="{{ customer.mobile if customer else '' }}"
+                                       required
+                                       pattern="[0-9]{10,15}"
+                                       maxlength="20">
+                            </div>
+                            <div class="form-text text-muted">Used for SMS updates, service status, and customer lookup.</div>
+                        </div>
+
+                        <!-- Email Address -->
+                        <div class="mb-3">
+                            <label for="email" class="form-label text-light fw-semibold">
+                                Email Address <span class="text-muted fw-normal small">(Optional)</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-muted">
+                                    <i class="bi bi-envelope"></i>
+                                </span>
+                                <input type="email"
+                                       class="form-control form-control-dark"
+                                       id="email"
+                                       name="email"
+                                       placeholder="e.g., rajesh.kumar@example.com"
+                                       value="{{ customer.email if customer and customer.email else '' }}"
+                                       maxlength="120">
+                            </div>
+                            <div class="form-text text-muted">For sending digital service invoices and estimates.</div>
+                        </div>
+
+                        <!-- Address -->
+                        <div class="mb-4">
+                            <label for="address" class="form-label text-light fw-semibold">
+                                Residential / Garage Address <span class="text-muted fw-normal small">(Optional)</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-muted align-self-start pt-2">
+                                    <i class="bi bi-geo-alt"></i>
+                                </span>
+                                <textarea class="form-control form-control-dark"
+                                          id="address"
+                                          name="address"
+                                          rows="3"
+                                          placeholder="House / Flat No., Street, City, Pin Code">{{ customer.address if customer and customer.address else '' }}</textarea>
+                            </div>
+                            <div class="form-text text-muted">Physical address for documentation and roadside assistance if needed.</div>
+                        </div>
+
+                        <hr class="border-secondary border-opacity-25 my-4">
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex align-items-center justify-content-between gap-3">
+                            <a href="{{ url_for('customers.detail', id=customer.id) if (action == 'Edit' and customer) else url_for('customers.index') }}"
+                               class="btn btn-outline-secondary px-4 d-inline-flex align-items-center gap-2">
+                                <i class="bi bi-arrow-left"></i>
+                                <span>Cancel</span>
+                            </a>
+                            <button type="submit" class="btn btn-re px-4 d-inline-flex align-items-center gap-2">
+                                <i class="bi bi-check-lg"></i>
+                                <span>{{ 'Update Customer' if action == 'Edit' else 'Save Customer' }}</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

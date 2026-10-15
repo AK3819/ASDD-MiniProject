@@ -1,0 +1,15 @@
+services:
+  re-garage:
+    build: .
+    container_name: re_garage_app
+    ports:
+      - "5000:5000"
+    volumes:
+      - re_garage_data:/app/instance
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=re-garage-docker-secret-key-2026
+    restart: unless-stopped
+
+volumes:
+  re_garage_data:

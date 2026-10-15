@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Motorcycles{% endblock %}
+
+{% block page_heading %}Motorcycles{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+    <!-- Top Filter and Action Bar -->
+    <div class="card card-dark mb-4">
+        <div class="card-body p-3">
+            <div class="row g-3 align-items-center justify-content-between">
+                <!-- Search & Filters Form -->
+                <div class="col-12 col-lg-8">
+                    <form method="GET" action="{{ url_for('motorcycles.index') }}" class="row g-2 align-items-center">
+                        <!-- Search input -->
+                        <div class="col-12 col-sm-6 col-md-5">
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-muted">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input type="text"
+                                       name="q"
+                                       class="form-control form-control-dark"
+                                       placeholder="Search reg no. or customer..."
+                                       value="{{ search or '' }}">
+                            </div>
+                        </div>
+
+                        <!-- Model Filter Dropdown -->
+                        <div class="col-12 col-sm-4 col-md-4">
+                            <select name="model" class="form-select form-select-dark" onchange="this.form.submit()">
+                                <option value="">All RE Models</option>
+                                {% for m in models %}
+                                <option value="{{ m }}" {% if selected_model == m %}selected{% endif %}>
+                                    {{ m }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Action buttons for filter -->
+                        <div class="col-12 col-sm-2 col-md-3 d-flex gap-2">
+                            <button type="submit" class="btn btn-secondary btn-sm px-3" title="Search">
+                                <i class="bi bi-funnel-fill me-1"></i> Filter
+                            </button>
+                            {% if search or selected_model %}
+                            <a href="{{ url_for('motorcycles.index') }}" class="btn btn-outline-secondary btn-sm" title="Clear Filters">
+                                <i class="bi bi-x-circle"></i> Reset
+                            </a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Add Motorcycle Button -->
+                <div class="col-12 col-lg-4 text-lg-end">
+                    <a href="{{ url_for('motorcycles.add') }}" class="btn btn-re d-inline-flex align-items-center gap-2">
+                        <i class="bi bi-plus-circle-fill"></i>
+                        <span>Add Motorcycle</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Filters & Summary Info -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="text-muted small">
+            Showing <strong class="text-light">{{ motorcycles|length }}</strong> registered motorcycle{{ 's' if motorcycles|length != 1 else '' }}
+            {% if selected_model %}
+                for model <span class="badge bg-secondary text-light">{{ selected_model }}</span>
+            {% endif %}
+            {% if search %}
+                matching <span class="badge bg-secondary text-light">"{{ search }}"</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Motorcycles Table / Empty State -->
+    <div class="card card-dark">
+        <div class="card-header d-flex justify-content-between align-items-center py-3">
+            <span class="fw-bold">
+                <i class="bi bi-bicycle text-danger me-2"></i> Garage Fleet
+            </span>
+            <span class="badge bg-dark border border-secondary text-muted">
+                Total: {{ motorcycles|length }}
+            </span>
+        </div>
+
+        <div class="card-body p-0">
+            {% if motorcycles %}
+            <div class="table-responsive">
+                <table class="table table-dark-custom align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;" class="text-center">#</th>
+                            <th>Registration No.</th>
+                            <th>Model</th>
+                            <th>Customer</th>
+                            <th>Year</th>
+                            <th>Odometer (km)</th>
+                            <th class="text-end" style="min-width: 150px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bike in motorcycles %}
+                        <tr>
+                            <td class="text-center text-muted small">{{ loop.index }}</td>
+                            <td>
+                                <span class="font-monospace fw-bold text-uppercase px-2 py-1 bg-dark rounded border border-secondary border-opacity-50 text-warning">
+                                    {{ bike.registration_number }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-dark border border-secondary text-light">
+                                    <i class="bi bi-tag-fill text-danger me-1"></i>{{ bike.model }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if bike.customer %}
+                                <a href="{{ url_for('customers.detail', id=bike.customer.id) }}" class="text-decoration-none text-light fw-medium">
+                                    <i class="bi bi-person text-muted me-1"></i>{{ bike.customer.name }}
+                                </a>
+                                <small class="text-muted d-block font-monospace">
+                                    <i class="bi bi-telephone text-secondary me-1"></i>{{ bike.customer.mobile }}
+                                </small>
+                                {% else %}
+                                <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="text-light">{{ bike.manufacturing_year }}</span>
+                            </td>
+                            <td>
+                                <span class="font-monospace text-light">
+                                    {{ "{:,}".format(bike.odometer_reading) }}
+                                </span>
+                                <span class="text-muted small">km</span>
+                            </td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-1">
+                                    <a href="{{ url_for('bookings.create', customer_id=bike.customer_id, motorcycle_id=bike.id) }}"
+                                       class="btn btn-sm btn-outline-warning"
+                                       title="New Service Booking">
+                                        <i class="bi bi-tools"></i>
+                                    </a>
+                                    <a href="{{ url_for('motorcycles.edit', id=bike.id) }}"
+                                       class="btn btn-sm btn-outline-info"
+                                       title="Edit Motorcycle">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <form action="{{ url_for('motorcycles.delete', id=bike.id) }}"
+                                          method="POST"
+                                          class="d-inline"
+                                          onsubmit="return confirm('Are you sure you want to delete motorcycle {{ bike.registration_number }} ({{ bike.model }})?');">
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-danger"
+                                                title="Delete Motorcycle">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-5 px-3">
+                <div class="mb-3">
+                    <i class="bi bi-bicycle text-muted" style="font-size: 3.5rem;"></i>
+                </div>
+                {% if search or selected_model %}
+                <h5 class="text-light fw-semibold">No motorcycles match your filters</h5>
+                <p class="text-muted small mb-3">
+                    We couldn't find any bikes matching
+                    {% if search %}<strong>"{{ search }}"</strong>{% endif %}
+                    {% if selected_model %}under <strong>{{ selected_model }}</strong>{% endif %}.
+                </p>
+                <a href="{{ url_for('motorcycles.index') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
+                </a>
+                {% else %}
+                <h5 class="text-light fw-semibold">No motorcycles registered yet</h5>
+                <p class="text-muted small mb-4">Start by registering your first customer's Royal Enfield motorcycle to the workshop.</p>
+                <a href="{{ url_for('motorcycles.add') }}" class="btn btn-re btn-sm px-4">
+                    <i class="bi bi-plus-circle-fill me-1"></i> Add Motorcycle
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
